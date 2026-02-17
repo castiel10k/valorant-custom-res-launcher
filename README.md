@@ -42,8 +42,8 @@ All settings live in `config.ini` next to the script. A full annotated sample is
 
 | Key | Description |
 |-----|-------------|
-| `resolution_width` | Target width in pixels, e.g. `1920`, `1440`, `1280` |
-| `resolution_height` | Target height in pixels, e.g. `1080`, `993`, `720` |
+| `resolution_width` | Target width in pixels, e.g. `2088`, `1568`, `1440` |
+| `resolution_height` | Target height in pixels, e.g. `1440`, `1080`, `993` |
 | `refresh_rate` | Hz — must be a mode your monitor actually supports, e.g. `60`, `144`, `360`, `600` |
 | `monitor_index` | Zero-based monitor index. `0` = primary, `1` = second monitor, etc. |
 | `monitor_device_id` | Windows device instance path for your monitor (see below) |
