@@ -1,78 +1,122 @@
+# VALORANT Launcher
 
-#  VALORANT Launcher - config.ini
+Automates pre-launch setup for VALORANT: patches config files for all accounts, disables monitors, sets resolution and refresh rate, then launches the game.
 
+---
 
+## Requirements
 
+- Windows 10/11
+- Python 3.x
+- Administrator privileges (the script will prompt for elevation automatically)
+- VALORANT installed via the Riot Client
+
+---
+
+## Usage
+
+```
+python valorant_launcher.py
+```
+
+The script will request UAC elevation if not already running as admin. Place `config.ini` in the same folder as the script.
+
+---
+
+## What it does
+
+1. Patches `GameUserSettings.ini` for every account listed in the config — forces exclusive fullscreen, sets resolution, disables letterbox, and locks the file read-only so Valorant can't overwrite it on launch
+2. Disables all monitors via Device Manager
+3. Waits 3 seconds
+4. Changes the Windows display resolution and refresh rate
+5. Waits 7 seconds
+6. Launches Valorant via RiotClientServices
+
+---
+
+## config.ini
+
+All settings live in `config.ini` next to the script. A full annotated sample is below.
+
+### `[display]`
+
+| Key | Description |
+|-----|-------------|
+| `resolution_width` | Target width in pixels, e.g. `1920`, `1440`, `1280` |
+| `resolution_height` | Target height in pixels, e.g. `1080`, `993`, `720` |
+| `refresh_rate` | Hz — must be a mode your monitor actually supports, e.g. `60`, `144`, `360`, `600` |
+| `monitor_index` | Zero-based monitor index. `0` = primary, `1` = second monitor, etc. |
+| `monitor_device_id` | Windows device instance path for your monitor (see below) |
+| `monitor_config_id` | Monitor ID written into the Valorant config (see below) |
+
+#### Finding monitor_device_id and monitor_config_id
+
+Both values can be found in two ways:
+
+**Option A — from an existing Valorant config:**
+Open `%LocalAppData%\VALORANT\Saved\Config\<any-account-id>\WindowsClient\GameUserSettings.ini` and search for `DefaultMonitorDeviceID` and `DefaultMonitorIndex`. The values already there are the ones to use.
+
+**Option B — from Device Manager:**
+1. Open Device Manager (`Win + X` → Device Manager)
+2. Expand **Monitors**
+3. Right-click your monitor → **Properties**
+4. Go to the **Details** tab
+5. In the **Property** dropdown, select **Device instance path**
+6. The value shown is your `monitor_device_id` (starts with `DISPLAY\...`)
+7. For `monitor_config_id`, look at the parent entry — it starts with `MONITOR\` and contains a GUID in curly braces
+
+---
+
+### `[valorant]`
+
+| Key | Description |
+|-----|-------------|
+| `user_ids` | Comma-separated list of Valorant account folder names (one per line) |
+
+#### Finding your account IDs
+
+Open File Explorer and navigate to:
+```
+%LocalAppData%\VALORANT\Saved\Config\
+```
+Each folder name in there is an account ID. Add all the accounts you want the script to patch.
+
+---
+
+### `[paths]`
+
+| Key | Description |
+|-----|-------------|
+| `riot_client_exe` | Full path to `RiotClientServices.exe`. The launch working directory is derived from this automatically. |
+| `valorant_config_dir` | Path to the folder containing all account config folders. Leave `%LocalAppData%` as-is — Windows expands it automatically. |
+
+---
+
+## Sample config.ini
+
+```ini
 [display]
-
-# Target resolution width in pixels.
-# Example: 1920
 resolution_width = 1440
-
-# Target resolution height in pixels.
-# Example: 1080
 resolution_height = 993
-
-# Refresh rate in Hz.
-# Must be a mode your monitor actually supports, otherwise the
-# resolution change step will fail.
-# Example: 60, 144, 240, 360, 600
 refresh_rate = 600
-
-# Which monitor to use (zero-based index).
-# 0 = first/primary monitor, 1 = second monitor, etc.
-# Value can be found in %LocalAppData%\VALORANT\Saved\Config\UID\GameUserSettings.ini 
 monitor_index = 0
-
-# Monitor device ID - used internally by the script but not
-# written to the Valorant config. You can find this in:
-#   Device Manager -> Monitors -> right-click your monitor
-#   -> Properties -> Details tab
-#   -> Property: "Device instance path"
-# Example: DISPLAY\BNQ7FEC\XYZ890
-# Value can be found in %LocalAppData%\VALORANT\Saved\Config\UID\GameUserSettings.ini
 monitor_device_id = DISPLAY\BNQ7FEC\XYZ123
-
-# Monitor config ID - this IS written to the Valorant config
-# so the game knows which monitor to use.
-# Find it in Device Manager the same way as monitor_device_id
-# but look one level up at the parent device. It usually starts
-# with MONITOR\ and contains a GUID in curly braces.
-# Example: MONITOR\BNQ7FEC\{ABC123}\0008
-# Value can be found in %LocalAppData%\VALORANT\Saved\Config\UID\GameUserSettings.ini
-
 monitor_config_id = MONITOR\BNQ7FEC\{ABC123}\0008
 
-
 [valorant]
-
-# Comma-separated list of Valorant account folder names.
-# Each account gets its own folder inside the Valorant config directory.
-# To find your account IDs, open File Explorer and navigate to:
-#   %LocalAppData%\VALORANT\Saved\Config\
-# The folder names in there are your account IDs.
-# Add one per line with a comma at the end (last one needs no comma).
-# Example:
-#   user_ids =
-#       UID1,
-#       UID2
 user_ids =
     UID1,
     UID2
 
-
 [paths]
-
-# Full path to RiotClientServices.exe.
-# Default location if you installed Riot Games to the default directory.
-# The working directory for launching is derived automatically from this path,
-# so you only need to set the exe.
-# Example: C:\Program Files (x86)\Riot Games\Riot Client\RiotClientServices.exe
 riot_client_exe = C:\Program Files (x86)\Riot Games\Riot Client\RiotClientServices.exe
-
-# Path to the folder that contains all Valorant account config folders.
-# %LocalAppData% is a Windows environment variable - leave it as-is,
-# it expands automatically to C:\Users\<yourname>\AppData\Local
-# Only change the part after Config\ if you have a non-standard install.
-# Example: %LocalAppData%\VALORANT\Saved\Config
 valorant_config_dir = %LocalAppData%\VALORANT\Saved\Config
+```
+
+---
+
+## Notes
+
+- Config files are locked **read-only** after being patched. The script automatically unlocks them before each run, so re-running always works.
+- If a key like `FullscreenMode` is missing from an account's config (e.g. the account has never launched the game), the script appends it to the file rather than skipping it.
+- If the Riot Client is not found at the configured path, the script will print an error and skip the launch step.
