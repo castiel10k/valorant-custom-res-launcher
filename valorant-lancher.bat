@@ -1,0 +1,1 @@
+python ./valorant_launcher.py
