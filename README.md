@@ -39,11 +39,11 @@ The script will request UAC elevation if not already running as admin. Place `co
 All settings live in `config.ini` next to the script. A full annotated sample is below.
 
 ### `[display]`
-
+The ratio `width / height` must be **≥ 1.45** (e.g. 1440/993 = 1.450, 1568/1080 = 1.452, 2088/1440 = 1.450)
 | Key | Description |
 |-----|-------------|
 | `resolution_width` | Target width in pixels, e.g. `2088`, `1568`, `1440` |
-| `resolution_height` | Target height in pixels, e.g. `1440`, `1080`, `993` |
+| `resolution_height` | Target height in pixels, e.g. `1440`, `1080`, `993`. |
 | `refresh_rate` | Hz — must be a mode your monitor actually supports, e.g. `60`, `144`, `360`, `600` |
 | `monitor_index` | Zero-based monitor index. `0` = primary, `1` = second monitor, etc. |
 | `monitor_device_id` | Windows device instance path for your monitor (see below) |
